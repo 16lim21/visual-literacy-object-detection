@@ -31,7 +31,6 @@ from utils import visualization_utils as vis_util
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 MODEL_NAME = 'faster_rcnn_inception_resnet_v2_atrous_oid_v4'
-MODEL_FILE = MODEL_NAME + '.tar.gz'
 DOWNLOAD_BASE = 'http://download.tensorflow.org/models/object_detection/'
 
 # Path to frozen detection graph. This is the actual model that is used for the object detection.
@@ -39,7 +38,6 @@ PATH_TO_FROZEN_GRAPH = MODEL_NAME + '/frozen_inference_graph.pb'
 
 # List of the strings that is used to add correct label for each box.
 PATH_TO_LABELS = './oid_v4_label_map.pbtxt'
-
 
 detection_graph = tf.Graph()
 with detection_graph.as_default():
@@ -51,17 +49,12 @@ with detection_graph.as_default():
 
 
 category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS, use_display_name=True)
-#print(category_index)
 
 def load_image_into_numpy_array(image):
     (im_width, im_height) = image.size
     return np.array(image.getdata()).reshape(
       (im_height, im_width, 3)).astype(np.uint8)
 
-# For the sake of simplicity we will use only 2 images:
-# image1.jpg
-# image2.jpg
-# If you want to test the code with your images, just add path to the images to the TEST_IMAGE_PATHS.
 # Size, in inches, of the output images.
 IMAGE_SIZE = (18, 12)
 
