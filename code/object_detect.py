@@ -62,6 +62,11 @@ def load_image_into_numpy_array(image):
 # Size, in inches, of the output images.
 IMAGE_SIZE = (18, 12)
 
+#Font variables for the strings
+FONT = cv2.FONT_HERSHEY_SIMPLEX
+FONT_SCALE = 0.4
+THICKNESS = 1
+
 def run_inference_for_single_image(image, sess):
     image_tensor = tf.compat.v1.get_default_graph().get_tensor_by_name('image_tensor:0')
 
@@ -136,6 +141,17 @@ with detection_graph.as_default():
                                          int(output_dict['detection_boxes'][index][2]*show_image.shape[0])) 
 
                                 show_image=cv2.rectangle(show_image, (left, top),(right, bottom), (0,0,255), 2)
+
+                                #Write class names (code from visualization_utils in object_detection.utils)
+                                if output_dict['detection_classes'][index] in category_index.keys():
+                                    class_name = category_index[output_dict['detection_classes'][index]]['name']
+                                else:
+                                    class_name = 'N/A'
+                                display_str = str(class_name)
+
+                                text_size, baseline= cv2.getTextSize(display_str, FONT, FONT_SCALE, THICKNESS)
+                                text_width = text_size[0]
+                                text_height = text_size[1]
 
                                 try:
                                     os.stat('./result/{}/{}/'.format(name, class_name))
