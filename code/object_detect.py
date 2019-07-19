@@ -16,32 +16,37 @@ from PIL import Image
 
 import cv2
 
-# This is needed since the notebook is stored in the object_detection folder.
-sys.path.append("..")
+# Append the path to the directory containing the object_detection directory
+sys.path.insert(0, "~/documents/TensorFlow/models/research/")
 from object_detection.utils import ops as utils_ops
 
 if StrictVersion(tf.__version__) < StrictVersion('1.12.0'):
     raise ImportError('Please upgrade your TensorFlow installation to v1.12.*.')
 
 
-from utils import label_map_util
+from object_detection.utils import label_map_util
 
-from utils import visualization_utils as vis_util
+from object_detection.utils import visualization_utils as vis_util
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
-MODEL_NAME = 'faster_rcnn_inception_resnet_v2_atrous_oid_v4'
-DOWNLOAD_BASE = 'http://download.tensorflow.org/models/object_detection/'
+#Change for own path to object_detection folder
+PATH_TO_OD_FOLDER = '/Users/mli/documents/TensorFlow/models/research/object_detection/'
+MODEL_NAME = PATH_TO_OD_FOLDER + 'faster_rcnn_inception_resnet_v2_atrous_oid_v4'
 
 # Path to frozen detection graph. This is the actual model that is used for the object detection.
 PATH_TO_FROZEN_GRAPH = MODEL_NAME + '/frozen_inference_graph.pb'
 
 # List of the strings that is used to add correct label for each box.
-PATH_TO_LABELS = './oid_v4_label_map.pbtxt'
+PATH_TO_LABELS = PATH_TO_OD_FOLDER + 'data/oid_v4_label_map.pbtxt'
 
 #List of classes that we want to draw bounding boxes on
 RELEVANT_CLASS_LIST = [34, 39, 69, 87, 98, 139, 161, 167, 177, 211, 216, 221, 228, 250, 292, 308, 
                        351, 365, 366, 399, 408, 433, 502, 503, 540, 573, 601] 
+RELEVANT_CLASS_DICT = {}
+
+for i in RELEVANT_CLASS_LIST:
+    RELEVANT_CLASS_DICT[i] = False
 
 detection_graph = tf.Graph()
 with detection_graph.as_default():
@@ -100,6 +105,7 @@ with detection_graph.as_default():
         
         name_list = glob.glob('./annotation_imgs/**/')
         for n in name_list:
+            #Indexed number depends on folder location
             name = n.split('/')[2]
             TEST_IMAGE_PATHS = glob.glob('./annotation_imgs/{}/*jpg'.format(name))
             TEST_IMAGE_PATHS.extend(glob.glob('./annotation_imgs/{}/*png'.format(name)))
@@ -128,25 +134,25 @@ with detection_graph.as_default():
 
                 # Convert RGB to BGR 
                 original_image = original_image[:, :, ::-1].copy()
+                class_name = 'none'
                 final_image = original_image.copy()
+                class_image = original_image.copy()
+
                 for class_index in RELEVANT_CLASS_LIST:
-                    class_image = original_image.copy()
-                    for index in range(len(output_dict['detection_scores'])):
-                        if output_dict['detection_classes'][index]==class_index: 
+                    for index in range(output_dict['num_detections']): 
+                        if output_dict['detection_classes'][index] == class_index: 
+                            RELEVANT_CLASS_DICT[class_index] = True
                             for show_image in [class_image, final_image]:
-                                (left, right, top, bottom) = 
-                                        (int(output_dict['detection_boxes'][index][1]*show_image.shape[1]),
+                                (left, right, top, bottom) =  (int(output_dict['detection_boxes'][index][1]*show_image.shape[1]),
                                          int(output_dict['detection_boxes'][index][3]*show_image.shape[1]),
                                          int(output_dict['detection_boxes'][index][0]*show_image.shape[0]),
                                          int(output_dict['detection_boxes'][index][2]*show_image.shape[0])) 
 
-                                show_image=cv2.rectangle(show_image, (left, top),(right, bottom), (0,0,255), 2)
+                                cv2.rectangle(show_image, (left, top),(right, bottom), (0,0,255), 2)
 
                                 #Write class names (code from visualization_utils in object_detection.utils)
                                 if output_dict['detection_classes'][index] in category_index.keys():
                                     class_name = category_index[output_dict['detection_classes'][index]]['name']
-                                else:
-                                    class_name = 'N/A'
                                 display_str = str(class_name)
 
                                 text_size, baseline= cv2.getTextSize(display_str, FONT, FONT_SCALE, THICKNESS)
@@ -164,11 +170,14 @@ with detection_graph.as_default():
                                 cv2.putText(show_image, display_str, (left, int(text_bottom - baseline)), 
                                            FONT, FONT_SCALE, (255,255,255), THICKNESS, True)
 
-                    try:
-                        os.stat('./result/{}/{}/'.format(name, class_name))
-                    except:
-                        os.makedirs('./result/{}/{}/'.format(name, class_name))
-                    cv2.imwrite('./result/{}/'.format(name)+save_name, class_image)
+                    if RELEVANT_CLASS_DICT[class_index]:  
+                        try:
+                            os.stat('./result/{}/{}/'.format(name, class_name))
+                        except:
+                            os.makedirs('./result/{}/{}/'.format(name, class_name))
+
+                        cv2.imwrite('./result/{}/{}/'.format(name, class_name)+save_name, class_image)
+                        class_image = original_image.copy()
 
                 try:
                     os.stat('./result/{}/all_classes/'.format(name))
@@ -176,3 +185,6 @@ with detection_graph.as_default():
                     os.makedirs('./result/{}/all_classes/'.format(name))
                         
                 cv2.imwrite('./result/{}/all_classes/'.format(name)+save_name, final_image)
+
+                for i in RELEVANT_CLASS_LIST:
+                    RELEVANT_CLASS_DICT[i] = False
