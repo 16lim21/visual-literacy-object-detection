@@ -39,6 +39,10 @@ PATH_TO_FROZEN_GRAPH = MODEL_NAME + '/frozen_inference_graph.pb'
 # List of the strings that is used to add correct label for each box.
 PATH_TO_LABELS = './oid_v4_label_map.pbtxt'
 
+#List of classes that we want to draw bounding boxes on
+RELEVANT_CLASS_LIST = [34, 39, 69, 87, 98, 139, 161, 167, 177, 211, 216, 221, 228, 250, 292, 308, 
+                       351, 365, 366, 399, 408, 433, 502, 503, 540, 573, 601] 
+
 detection_graph = tf.Graph()
 with detection_graph.as_default():
     od_graph_def = tf.compat.v1.GraphDef()
@@ -117,13 +121,14 @@ with detection_graph.as_default():
                 show_image = np.array(image) 
 
                 # Convert RGB to BGR 
-                show_image = show_image[:, :, ::-1].copy() 
-                for index in range(len(output_dict['detection_scores'])):
-                    if output_dict['detection_classes'][index]==211: #output_dict['detection_scores'][index]>0.0:# 
-                        show_image=cv2.rectangle(show_image, 
-                                (int(output_dict['detection_boxes'][index][1]*show_image.shape[1]),
-                                int(output_dict['detection_boxes'][index][0]*show_image.shape[0])),
-                                (int(output_dict['detection_boxes'][index][3]*show_image.shape[1]),
-                                int(output_dict['detection_boxes'][index][2]*show_image.shape[0])),
-                                (0,0,255), 2)
-                cv2.imwrite('./result/{}/'.format(name)+save_name, show_image)
+                show_image = show_image[:, :, ::-1].copy()
+                for class_index in RELEVANT_CLASS_LIST:
+                    for index in range(len(output_dict['detection_scores'])):
+                        if output_dict['detection_classes'][index]==class_index: 
+                            show_image=cv2.rectangle(show_image, 
+                                    (int(output_dict['detection_boxes'][index][1]*show_image.shape[1]),
+                                    int(output_dict['detection_boxes'][index][0]*show_image.shape[0])),
+                                    (int(output_dict['detection_boxes'][index][3]*show_image.shape[1]),
+                                    int(output_dict['detection_boxes'][index][2]*show_image.shape[0])),
+                                    (0,0,255), 2)
+                    cv2.imwrite('./result/{}/'.format(name)+save_name, show_image)
