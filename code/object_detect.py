@@ -152,10 +152,16 @@ with detection_graph.as_default():
                                 text_size, baseline= cv2.getTextSize(display_str, FONT, FONT_SCALE, THICKNESS)
                                 text_width = text_size[0]
                                 text_height = text_size[1]
-
-                                cv2.rectangle(show_image, (left, int(bottom - text_height - baseline)),
-                                             (int(left + text_width), int(bottom)), (0, 0, 255), -1)
-                                cv2.putText(show_image, display_str, (left, int(bottom - baseline)),
+                                display_str_height = (1 + 2 * 0.05) * text_height
+                                
+                                if top - display_str_height > 0:
+                                    text_bottom = top
+                                else:
+                                    text_bottom = bottom + display_str_height + baseline
+         
+                                cv2.rectangle(show_image, (left, int(text_bottom - text_height - baseline)), 
+                                             (int(left + text_width), int(text_bottom)), (0, 0, 255), -1)
+                                cv2.putText(show_image, display_str, (left, int(text_bottom - baseline)), 
                                            FONT, FONT_SCALE, (255,255,255), THICKNESS, True)
 
                     try:
