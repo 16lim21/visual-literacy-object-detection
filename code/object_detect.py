@@ -129,12 +129,13 @@ with detection_graph.as_default():
                     for index in range(len(output_dict['detection_scores'])):
                         if output_dict['detection_classes'][index]==class_index: 
                             for show_image in [class_image, final_image]:
-                                show_image=cv2.rectangle(show_image, 
+                                (left, right, top, bottom) = 
                                         (int(output_dict['detection_boxes'][index][1]*show_image.shape[1]),
-                                        int(output_dict['detection_boxes'][index][0]*show_image.shape[0])),
-                                        (int(output_dict['detection_boxes'][index][3]*show_image.shape[1]),
-                                        int(output_dict['detection_boxes'][index][2]*show_image.shape[0])),
-                                        (0,0,255), 2)
+                                         int(output_dict['detection_boxes'][index][3]*show_image.shape[1]),
+                                         int(output_dict['detection_boxes'][index][0]*show_image.shape[0]),
+                                         int(output_dict['detection_boxes'][index][2]*show_image.shape[0])) 
+
+                                show_image=cv2.rectangle(show_image, (left, top),(right, bottom), (0,0,255), 2)
 
                                 try:
                                     os.stat('./result/{}/{}/'.format(name, class_name))
