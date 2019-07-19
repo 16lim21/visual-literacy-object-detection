@@ -93,8 +93,9 @@ with detection_graph.as_default():
                 tensor_dict[key] = tf.compat.v1.get_default_graph().get_tensor_by_name(
                                     tensor_name)
         
-        name_list = ['ishaan','jessica','michael']
-        for name in name_list:
+        name_list = glob.glob('./annotation_imgs/**/')
+        for n in name_list:
+            name = n.split('/')[2]
             TEST_IMAGE_PATHS = glob.glob('./annotation_imgs/{}/*jpg'.format(name))
             TEST_IMAGE_PATHS.extend(glob.glob('./annotation_imgs/{}/*png'.format(name)))
             try:
