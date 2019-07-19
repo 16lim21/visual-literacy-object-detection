@@ -118,17 +118,33 @@ with detection_graph.as_default():
 
                 # Actual detection.
                 output_dict = run_inference_for_single_image(image_np_expanded, sess)
-                show_image = np.array(image) 
+                original_image = np.array(image) 
 
                 # Convert RGB to BGR 
-                show_image = show_image[:, :, ::-1].copy()
+                original_image = original_image[:, :, ::-1].copy()
+                final_image = original_image.copy()
                 for class_index in RELEVANT_CLASS_LIST:
+                    class_image = original_image.copy()
                     for index in range(len(output_dict['detection_scores'])):
                         if output_dict['detection_classes'][index]==class_index: 
-                            show_image=cv2.rectangle(show_image, 
-                                    (int(output_dict['detection_boxes'][index][1]*show_image.shape[1]),
-                                    int(output_dict['detection_boxes'][index][0]*show_image.shape[0])),
-                                    (int(output_dict['detection_boxes'][index][3]*show_image.shape[1]),
-                                    int(output_dict['detection_boxes'][index][2]*show_image.shape[0])),
-                                    (0,0,255), 2)
-                    cv2.imwrite('./result/{}/'.format(name)+save_name, show_image)
+                            for show_image in [class_image, final_image]:
+                                show_image=cv2.rectangle(show_image, 
+                                        (int(output_dict['detection_boxes'][index][1]*show_image.shape[1]),
+                                        int(output_dict['detection_boxes'][index][0]*show_image.shape[0])),
+                                        (int(output_dict['detection_boxes'][index][3]*show_image.shape[1]),
+                                        int(output_dict['detection_boxes'][index][2]*show_image.shape[0])),
+                                        (0,0,255), 2)
+
+                                try:
+                                    os.stat('./result/{}/{}/'.format(name, class_name))
+                                except:
+                                    os.makedirs('./result/{}/{}/'.format(name, class_name))
+
+                    cv2.imwrite('./result/{}/'.format(name)+save_name, class_image)
+
+                try:
+                    os.stat('./result/{}/all_classes/'.format(name))
+                except:
+                    os.makedirs('./result/{}/all_classes/'.format(name))
+                        
+                cv2.imwrite('./result/{}/all_classes/'.format(name)+save_name, final_image)
