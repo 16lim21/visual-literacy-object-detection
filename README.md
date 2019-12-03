@@ -1,3 +1,5 @@
+This code was written for a research project at Columbia University's DVMM Lab in conjunction with Columbia University's School of Journalism. The end goal is to create an app that would aid journalists in detecting the symbols identifying different alt-right and political groups using machine learning. This code was specifically used to detect objects where these symbols might appear on, then crop them to be used to train machine learning models (since detection of these objects were not very accurate or precise using predefined models). The photos included in this repository deepict possibly offensive images.
+
 Things to install/do before running:
 
 Download the object_detection folder here: https://github.com/tensorflow/models/tree/master/research/object_detection
